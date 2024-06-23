@@ -1,4 +1,5 @@
 """Pytest fixtures."""
+
 import copy
 from datetime import timedelta
 import os
@@ -262,11 +263,6 @@ def exclude_tasks(request):
 
 @pytest.fixture(params=[True, False])
 def failures_only(request):
-    return request.param
-
-
-@pytest.fixture(params=[slack_webhook])
-def webhook(request):
     return request.param
 
 

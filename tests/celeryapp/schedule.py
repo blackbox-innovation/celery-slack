@@ -1,6 +1,12 @@
 """The celery beat schedule."""
+
 import datetime
-import pytz
+import sys
+
+if sys.version_info >= (3, 9):
+    from zoneinfo import ZoneInfo
+else:
+    import pytz
 
 from celery import __version__ as CELERY_VERSION
 from celery.schedules import crontab
@@ -8,20 +14,23 @@ from celery.schedules import crontab
 if CELERY_VERSION >= "4.0.0":
     from celery.schedules import solar
 
-
-TZ = pytz.timezone("UTC")
+# Set timezone
+if sys.version_info >= (3, 9):
+    TZ = ZoneInfo("UTC")
+else:
+    TZ = pytz.timezone("UTC")
 
 # Launch one time on restart
-
 one_timers = {
     "tests.celeryapp.tasks.successful_task": {"args": [1, 2], "kwargs": {}},
     "tests.celeryapp.tasks.unsuccessful_task": {"args": [1, 2], "kwargs": {}},
 }
 
 solar_tasks = {"tests.celeryapp.tasks.solar_task": {"args": [1, 2], "kwargs": {}}}
-timedelta_tasks = {"tests.celeryapp.tasks.timedelta_task": {"args": [1, 2], "kwargs": {}}}
+timedelta_tasks = {
+    "tests.celeryapp.tasks.timedelta_task": {"args": [1, 2], "kwargs": {}}
+}
 number_tasks = {"tests.celeryapp.tasks.number_task": {"args": [1, 2], "kwargs": {}}}
-
 
 # The beat schedule
 schedule = {}
@@ -31,16 +40,19 @@ def add_tasks_to_schedule(tasks, ctab):
     """Add the tasks to the schedule."""
     for task in tasks:
         name = task
-
         the_task = {
-            name: {"task": task, "args": tasks[task]["args"], "kwargs": tasks[task]["kwargs"], "schedule": ctab}
+            name: {
+                "task": task,
+                "args": tasks[task]["args"],
+                "kwargs": tasks[task]["kwargs"],
+                "schedule": ctab,
+            }
         }
         schedule.update(the_task)
 
 
 def get_schedule():
     """Create the celerybeat schedule."""
-    # one time for testing
     now = datetime.datetime.now(TZ)
     add_tasks_to_schedule(
         one_timers,

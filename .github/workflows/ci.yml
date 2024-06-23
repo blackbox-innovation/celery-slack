@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, 3.10, 3.11, 3.12]
+        celery-version: [4.0, 4.1, 4.2, 4.3]
+    env:
+      PIP_CACHE_DIR: ${{ runner.os }}/pip-cache
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache Poetry and pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ matrix.celery-version }}-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ matrix.celery-version }}-
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+
+      - name: Install dependencies
+        run: |
+          env -u VIRTUAL_ENV poetry add celery==${{ matrix.celery-version }}
+          env -u VIRTUAL_ENV poetry add ruff
+          env -u VIRTUAL_ENV poetry install
+
+      - name: Run tests
+        run: env -u VIRTUAL_ENV poetry run pytest
+
+      - name: Run Ruff code check
+        run: env -u VIRTUAL_ENV poetry run ruff check .
