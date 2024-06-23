@@ -16,7 +16,7 @@ jobs:
         python-version: [3.8, 3.9, 3.10, 3.11, 3.12]
         celery-version: [4.0, 4.1, 4.2, 4.3]
     env:
-      PIP_CACHE_DIR: ${{ runner.os }}/pip-cache
+      PIP_CACHE_DIR: ~/.cache/pip # Fixed path syntax
 
     steps:
       - name: Checkout code
@@ -33,9 +33,9 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ matrix.celery-version }}-${{ hashFiles('**/poetry.lock') }}
+          key: poetry-${{ matrix.python-version }}-${{ matrix.celery-version }}-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ matrix.celery-version }}-
+            poetry-${{ matrix.python-version }}-${{ matrix.celery-version }}-
 
       - name: Install Poetry
         run: |
@@ -43,12 +43,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          env -u VIRTUAL_ENV poetry add celery==${{ matrix.celery-version }}
-          env -u VIRTUAL_ENV poetry add ruff
-          env -u VIRTUAL_ENV poetry install
+          poetry add celery==${{ matrix.celery-version }}
+          poetry add ruff
+          poetry install
 
       - name: Run tests
-        run: env -u VIRTUAL_ENV poetry run pytest
+        run: poetry run pytest
 
       - name: Run Ruff code check
-        run: env -u VIRTUAL_ENV poetry run ruff check .
+        run: poetry run ruff check .
