@@ -108,7 +108,7 @@ extension:
         "use_fixed_width": True,
         "include_tasks": None,
         "exclude_tasks": None,
-        "failures_only": False,
+        "failures_only": True,
         "webhook": None,
         "beat_schedule": None,
         "beat_show_full_task_path": False,
@@ -152,6 +152,36 @@ Most of the options are self explanatory, but here are some additional details:
 * **beat_schedule**: The celery beat schedule. If provided, the beat_init message will display the schedule.
 * **beat_show_full_task_path**: Show the full module-task path. If False (default) only show `submodule.taskname`.
 
+
+Using Celery-Slack with Django
+==============================
+
+1. **Install Dependencies**:
+   Use Poetry to add `celery` and `celery-slack` to your project:
+
+   .. code-block:: bash
+
+       poetry add celery
+       poetry add git+https://github.com/blackbox-innovation/celery-slack.git
+
+2. **Configure Celery**:
+   Create a `celery.py` file in your Django project directory:
+
+   .. code-block:: python
+
+       # project/celery.py
+       from celery import Celery
+       from celery_slack import Slackify
+       import os
+
+       os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+
+       app = Celery('project')
+       app.config_from_object('django.conf:settings', namespace='CELERY')
+       app.autodiscover_tasks()
+
+       SLACK_WEBHOOK = 'https://hooks.slack.com/services/XXX/YYY/ZZZ'
+       Slackify(app, SLACK_WEBHOOK)
 
 Warnings
 --------

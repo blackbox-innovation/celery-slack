@@ -1,9 +1,11 @@
 """Test slack functions."""
+
 import os
 import platform
 import pytest
 
 import celery_slack
+from celery_slack.exceptions import MissingWebhookException
 from celery_slack.slack import post_to_slack
 from celery_slack.slack import post_warning_to_slack
 
@@ -51,6 +53,12 @@ def test_post_to_slack(test_webhook, slack_attachment, code, recorder, cassette)
             rsps.add(responses.POST, test_webhook, body="{}", status=code, content_type="application/json")
             response = post_to_slack(test_webhook, " ", slack_attachment)
         assert response.status_code == code
+
+
+def test_post_to_slack_no_webhook():
+    """Test that MissingWebhookException is raised when no webhook is provided."""
+    with pytest.raises(MissingWebhookException):
+        post_to_slack(None, "Test message")
 
 
 @pytest.mark.parametrize("slack_attachment,cassette", [(SAMPLE_ATTACHMENT, "attach"), (None, "none")])

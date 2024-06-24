@@ -1,9 +1,12 @@
 """Post to slack."""
+
 import logging
 import time
 
 import requests
 from requests.exceptions import RequestException
+
+from celery_slack.exceptions import MissingWebhookException
 
 
 RETRY_AFTER = 0
@@ -12,6 +15,9 @@ TIMEOUT = 1
 
 
 def post_to_slack(webhook, text=" ", attachment=None):
+    if webhook is None:
+        raise MissingWebhookException("Slack webhook must be provided.")
+
     """Post a message to the slack channel."""
     global RETRY_AFTER
     global RATE_LIMITED

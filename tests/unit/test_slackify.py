@@ -1,28 +1,12 @@
 """Test Slackify."""
+
 from celery import Celery
 import pytest
 
 from celery_slack import Slackify
-from celery_slack.exceptions import MissingWebhookException
 from celery_slack.exceptions import TaskFiltrationException
 from celery_slack.exceptions import InvalidColorException
 from .conftest import get_options
-
-
-def test_slackify_webhook_exception(possible_webhook, default_options):
-    """Test Slackify construction."""
-    these_options = locals()
-    these_options.pop("default_options")
-    options = get_options(default_options, **these_options)
-    options["webhook"] = possible_webhook
-
-    # Test webhook exception
-    if options["webhook"] is None:
-        with pytest.raises(MissingWebhookException):
-            app = Celery("schedule")
-            app.config_from_object("tests.celeryapp.config")
-            slack_app = Slackify(app, **options)
-        return
 
 
 def test_slackify_task_filtration_exception(webhook, include_tasks, exclude_tasks, default_options):

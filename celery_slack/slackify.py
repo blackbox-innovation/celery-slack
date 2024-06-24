@@ -1,4 +1,5 @@
 """Slackify celery."""
+
 import re
 
 from celery.signals import beat_init
@@ -16,7 +17,6 @@ from .callbacks import slack_task_failure
 from .callbacks import slack_task_prerun
 from .callbacks import slack_task_success
 from .exceptions import InvalidColorException
-from .exceptions import MissingWebhookException
 from .exceptions import TaskFiltrationException
 from celery_slack import slack
 
@@ -47,7 +47,7 @@ DEFAULT_OPTIONS = {
     "use_fixed_width": True,
     "include_tasks": None,
     "exclude_tasks": None,
-    "failures_only": False,
+    "failures_only": True,
     "webhook": None,
     "beat_schedule": None,
     "beat_show_full_task_path": False,
@@ -70,9 +70,6 @@ class Slackify(object):
         self.options.update(**options)
         self.options["webhook"] = webhook
         self.options["beat_schedule"] = beat_schedule or self.options["beat_schedule"]
-
-        if self.options["webhook"] is None:
-            raise MissingWebhookException("Slack webhook must be provided.")
 
         if self.options["include_tasks"] and self.options["exclude_tasks"]:
             raise TaskFiltrationException("Only one of 'include_tasks' and 'exclude_tasks' " "options can be provided.")
